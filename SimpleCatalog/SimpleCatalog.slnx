@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SimpleCatalog.API/SimpleCatalog.API.csproj" Id="b9c26364-093f-40df-adb7-4ef3279e2dad" />
+  <Project Path="SimpleCatalog.Application/SimpleCatalog.Application.csproj" />
+  <Project Path="SimpleCatalog.Domain/SimpleCatalog.Domain.csproj" />
+  <Project Path="SimpleCatalog.Infrastructure/SimpleCatalog.Infrastructure.csproj" />
+</Solution>
