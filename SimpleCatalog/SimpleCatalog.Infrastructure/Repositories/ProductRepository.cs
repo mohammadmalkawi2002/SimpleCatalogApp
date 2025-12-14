@@ -22,6 +22,7 @@ namespace SimpleCatalog.Infrastructure.Repositories
 
             return await _context.Products
                         .Include(p => p.Category)
+                           .Include(P => P.Supplier)
                             .ToListAsync();
         }
 

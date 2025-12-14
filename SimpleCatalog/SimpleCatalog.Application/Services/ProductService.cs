@@ -1,4 +1,5 @@
-﻿using SimpleCatalog.Application.DTOs;
+﻿using AutoMapper;
+using SimpleCatalog.Application.DTOs;
 using SimpleCatalog.Application.Interfaces;
 using SimpleCatalog.Domain.Entities;
 using System;
@@ -10,10 +11,13 @@ namespace SimpleCatalog.Application.Services
     public class ProductService
     {
         private readonly IProductRepository _productRepo;
+        private readonly IMapper _mapper;
+        
 
-        public ProductService(IProductRepository productRepo)
+        public ProductService(IProductRepository productRepo, IMapper mapper)
         {
             _productRepo = productRepo;
+            _mapper = mapper;
         }
 
 
@@ -21,16 +25,7 @@ namespace SimpleCatalog.Application.Services
         { 
             var products=  await _productRepo.GetAllAsync();
 
-            return products.Select(p => new ProductDto 
-                {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                Status = p.Status,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category?.Name ?? string.Empty
-            }).ToList();
+            return _mapper.Map<List<ProductDto>>(products);
         }
 
 
@@ -41,59 +36,30 @@ namespace SimpleCatalog.Application.Services
             if (product is null)
                 return null;
 
-            return new ProductDto 
-            { 
-             Id= product.Id,
-             Name = product.Name,
-             Description = product.Description,
-             Price = product.Price,
-             Status = product.Status,
-             CategoryId = product.CategoryId,
-             CategoryName=product.Category?.Name ?? string.Empty
-            
-            };
+            return _mapper.Map<ProductDto>(product);
         }
 
         public async Task<ProductDto> CreateProductAsync(CreateProductDto dto) 
         {
             //Mapping From Dto To Entity:
-            var product = new Product 
-            { 
-             Name=dto.Name,
-             Description=dto.Description,
-             Price=dto.Price,
-             Status = dto.Status,
-             CategoryId = dto.CategoryId,
-              CreatedAt = DateTime.UtcNow
-
-            };
-
+            var product = _mapper.Map<Product>(dto);
+            product.CreatedAt = DateTime.UtcNow;
             var created = await _productRepo.AddAsync(product);
 
-            return new ProductDto
-            {
-                Id = created.Id,
-                Name = created.Name,
-                Description = created.Description,
-                Price = created.Price,
-                Status = created.Status,
-                CategoryId = created.CategoryId
-            };
+            return _mapper.Map<ProductDto>(created);
         }
 
         public async Task UpdateProductAsync(UpdateProductDto dto)
         {
             var product = await _productRepo.GetByIdAsync(dto.Id);
 
+
             if (product == null)
                 throw new Exception($"Product with ID {dto.Id} not found");
 
-            product.Name = dto.Name;
-            product.Description = dto.Description;
-            product.Price = dto.Price;
-            product.Status = dto.Status;
-            product.CategoryId = dto.CategoryId;
             product.UpdatedAt = DateTime.UtcNow;
+
+            _mapper.Map(dto,product);
 
             await _productRepo.UpdateAsync(product);
         }

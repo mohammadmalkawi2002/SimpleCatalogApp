@@ -1,4 +1,5 @@
-﻿using SimpleCatalog.Application.DTOs;
+﻿using AutoMapper;
+using SimpleCatalog.Application.DTOs;
 using SimpleCatalog.Application.Interfaces;
 using SimpleCatalog.Domain.Entities;
 using System;
@@ -10,22 +11,20 @@ namespace SimpleCatalog.Application.Services
     public class CategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
 
-        public CategoryService(ICategoryRepository categoryRepository)
+
+        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
         {
             _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
         public async Task<List<CategoryDto>> GetAllCategoriesAsync()
         {
             var categories = await _categoryRepository.GetAllAsync();
 
-            return categories.Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description
-            }).ToList();
+            return _mapper.Map<List<CategoryDto>>(categories);
         }
 
         public async Task<CategoryDto?> GetCategoryByIdAsync(int id)
@@ -35,31 +34,18 @@ namespace SimpleCatalog.Application.Services
             if (category == null)
                 return null;
 
-            return new CategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description
-            };
+            return _mapper.Map<CategoryDto>(category);
         }
 
         public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto dto)
         {
-            var category = new Category
-            {
-                Name = dto.Name,
-                Description = dto.Description,
-                CreatedAt = DateTime.UtcNow
-            };
+            var category = _mapper.Map<Category>(dto);
+
+            category.CreatedAt = DateTime.UtcNow;
 
             var created = await _categoryRepository.AddAsync(category);
 
-            return new CategoryDto
-            {
-                Id = created.Id,
-                Name = created.Name,
-                Description = created.Description
-            };
+            return _mapper.Map<CategoryDto>(created);
         }
 
         public async Task UpdateCategoryAsync(UpdateCategoryDto dto)
@@ -69,8 +55,7 @@ namespace SimpleCatalog.Application.Services
             if (category == null)
                 throw new Exception($"Category with ID {dto.Id} not found");
 
-            category.Name = dto.Name;
-            category.Description = dto.Description;
+           _mapper.Map(dto, category);
             category.UpdatedAt = DateTime.UtcNow;
 
             await _categoryRepository.UpdateAsync(category);
