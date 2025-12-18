@@ -13,14 +13,15 @@ namespace SimpleCatalog.Application.Validators
         public CreateProductDtoValidator()
         {
             RuleFor(p => p.Name).NotEmpty()
-                .WithMessage("The product Name is required")
+                .WithMessage(" {PropertyName} is required")
                 .MaximumLength(200)
-                .WithMessage("ProductName Should be less than 200 characters");
+                .WithMessage("{PropertyName} Should be less than 200 characters");
 
             RuleFor(p => p.Price)
             .GreaterThan(0)
             .WithMessage("Price must greater than 0");
 
+            RuleFor(p => p.Price).InclusiveBetween(0, 1000000);
             RuleFor(p => p.Description).MaximumLength(1000);
 
 
@@ -44,7 +45,7 @@ namespace SimpleCatalog.Application.Validators
     {
         public UpdateProductDtoValidator()
             {
-                RuleFor(x => x.Id).GreaterThan(0);
+                RuleFor(x => x.Id).GreaterThan(0).WithMessage("Id cannot be negative or  empty");
             RuleFor(p => p.Name).NotEmpty()
             .WithMessage("The product Name is required")
             .MaximumLength(200)

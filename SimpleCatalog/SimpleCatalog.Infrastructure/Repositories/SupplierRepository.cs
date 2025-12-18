@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SimpleCatalog.Application.Interfaces;
+using SimpleCatalog.Application.Pagination;
 using SimpleCatalog.Domain.Entities;
 using SimpleCatalog.Infrastructure.Data;
 using System;
@@ -56,6 +57,33 @@ namespace SimpleCatalog.Infrastructure.Repositories
         {
            _context.Suppliers.Update(supplier);
            await  _context.SaveChangesAsync();
+        }
+
+        public async Task<PagedResult<Supplier>> GetPagedResultAsync(int pageNumber, int pageSize)
+        {
+           var query= _context.Suppliers
+                       .AsNoTracking()
+                       //.Include(s=>s.Products)
+                    .AsQueryable();
+
+            var totalCount= await query.CountAsync();
+
+            var items= await query
+                    .OrderBy(supplier=>supplier.Id)
+                    .Skip((pageNumber-1)*pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+            return new PagedResult<Supplier>
+            {
+                    Items= items,
+                    TotalCount=totalCount,
+                    PageNumber=pageNumber,
+                    PageSize=pageSize
+                         
+            };
+                     
+
         }
     }
 }

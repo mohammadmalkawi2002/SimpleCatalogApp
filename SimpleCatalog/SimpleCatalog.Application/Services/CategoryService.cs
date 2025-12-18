@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using SimpleCatalog.Application.DTOs;
 using SimpleCatalog.Application.Interfaces;
+using SimpleCatalog.Application.Pagination;
 using SimpleCatalog.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -64,6 +65,21 @@ namespace SimpleCatalog.Application.Services
         public async Task DeleteCategoryAsync(int id)
         {
             await _categoryRepository.DeleteAsync(id);
+        }
+
+        public async Task<PagedResult<CategoryDto>> GetPagedCategoriesAsync(BaseQueryParametersRequest request) 
+        { 
+           var pagedCategories= await _categoryRepository.GetPagedAsync(request);
+
+            var dtoItems = _mapper.Map< List<CategoryDto>>(pagedCategories.Items);
+
+            return new PagedResult<CategoryDto> 
+            { 
+               Items = dtoItems,
+             PageNumber=pagedCategories.PageNumber,
+             PageSize=pagedCategories.PageSize,
+              TotalCount=pagedCategories.TotalCount
+            };
         }
     }
 }

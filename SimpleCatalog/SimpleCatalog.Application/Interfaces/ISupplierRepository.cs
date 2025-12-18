@@ -1,4 +1,5 @@
-﻿using SimpleCatalog.Domain.Entities;
+﻿using SimpleCatalog.Application.Pagination;
+using SimpleCatalog.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace SimpleCatalog.Application.Interfaces
         Task<Supplier> AddAsync(Supplier supplier);
         Task UpdateAsync(Supplier supplier);
 
+        Task<PagedResult<Supplier>> GetPagedResultAsync(int pageNumber, int pageSize);
         Task DeleteAsync(int id);
     }
 }

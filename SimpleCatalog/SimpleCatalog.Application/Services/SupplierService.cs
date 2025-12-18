@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using SimpleCatalog.Application.DTOs;
 using SimpleCatalog.Application.Interfaces;
+using SimpleCatalog.Application.Pagination;
 using SimpleCatalog.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,31 @@ namespace SimpleCatalog.Application.Services
 
             //}).ToList();
         }
+
+
+        public async Task<PagedResult<SupplierDto>> GetPagedSuppliersAsync(int pageNumber, int pageSize)
+        {
+           
+
+            var paged= await _supplierRepository.GetPagedResultAsync(pageNumber, pageSize);
+
+           
+
+            var pagedDtos=_mapper.Map<List<SupplierDto>>(paged.Items);
+
+            return new PagedResult<SupplierDto> 
+            { 
+                 Items=pagedDtos,
+                 PageNumber=paged.PageNumber,
+                PageSize=paged.PageSize
+                
+            };
+               
+            
+            }
+
+
+        
 
         public async Task<SupplierDto> GetSupplierByIdAsync(int id) 
         { 

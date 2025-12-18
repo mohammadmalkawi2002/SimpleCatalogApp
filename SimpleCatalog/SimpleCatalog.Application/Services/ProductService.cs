@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using SimpleCatalog.Application.DTOs;
 using SimpleCatalog.Application.Interfaces;
+using SimpleCatalog.Application.Pagination;
+using SimpleCatalog.Application.Validators;
 using SimpleCatalog.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -12,12 +15,16 @@ namespace SimpleCatalog.Application.Services
     {
         private readonly IProductRepository _productRepo;
         private readonly IMapper _mapper;
-        
+        IValidator<CreateProductDto> _createValidator;
+        IValidator<UpdateProductDto> _updateValidator;
 
-        public ProductService(IProductRepository productRepo, IMapper mapper)
-        {
+
+
+        public ProductService(IProductRepository productRepo, IMapper mapper) 
+        { 
             _productRepo = productRepo;
             _mapper = mapper;
+           
         }
 
 
@@ -28,9 +35,37 @@ namespace SimpleCatalog.Application.Services
             return _mapper.Map<List<ProductDto>>(products);
         }
 
+      public async Task<PagedResult<ProductDto>> GetPagedProductsAsync( ProductQueryParametersRequest query)
+        {
+
+            //Call Repo 
+            var pagedProducts= await _productRepo.GetPagedAsync(query);
+
+            //Mapping From Entities To Dto :
+            var dtoItems = _mapper.Map<List<ProductDto>>(pagedProducts.Items);
+
+
+            return new PagedResult<ProductDto>
+            {
+                Items = dtoItems,
+                 TotalCount=pagedProducts.TotalCount,
+                 PageNumber=pagedProducts.PageNumber,
+                 PageSize=pagedProducts.PageSize,
+              
+
+            };
+
+           
+
+        }       
+
+
+
 
         public async Task<ProductDto> GetProductByIdAsync(int id) 
         {
+            if(id<=0)
+                throw new ArgumentOutOfRangeException("Id must greater than 0");
             var product = await _productRepo.GetByIdAsync(id);
 
             if (product is null)
@@ -41,6 +76,7 @@ namespace SimpleCatalog.Application.Services
 
         public async Task<ProductDto> CreateProductAsync(CreateProductDto dto) 
         {
+
             //Mapping From Dto To Entity:
             var product = _mapper.Map<Product>(dto);
             product.CreatedAt = DateTime.UtcNow;
@@ -51,6 +87,8 @@ namespace SimpleCatalog.Application.Services
 
         public async Task UpdateProductAsync(UpdateProductDto dto)
         {
+
+            
             var product = await _productRepo.GetByIdAsync(dto.Id);
 
 

@@ -19,6 +19,7 @@ namespace SimpleCatalog.Application.Validators
 
             RuleFor(x => x.Email)
                 .NotEmpty()
+                .WithMessage("email is required")
                 .EmailAddress()
                 .WithMessage("please enter a valid email address");
 
@@ -27,6 +28,7 @@ namespace SimpleCatalog.Application.Validators
 
             RuleFor(x => x.Phone)
                 .NotEmpty()
+                .Matches(@"^\d{10}$")
                 .MaximumLength(50);
         }
     }
@@ -39,11 +41,12 @@ namespace SimpleCatalog.Application.Validators
         {
             RuleFor(x => x.Id).GreaterThan(0);
             RuleFor(x => x.Name)
-               .NotEmpty()
-               .MaximumLength(100);
+                .NotEmpty()
+                .MaximumLength(100);
 
             RuleFor(x => x.Email)
                 .NotEmpty()
+                .WithMessage("email is required")
                 .EmailAddress()
                 .WithMessage("please enter a valid email address");
 
@@ -52,8 +55,8 @@ namespace SimpleCatalog.Application.Validators
 
             RuleFor(x => x.Phone)
                 .NotEmpty()
+                .Matches(@"^\d{10}$")
                 .MaximumLength(50);
-
         }
     }
     

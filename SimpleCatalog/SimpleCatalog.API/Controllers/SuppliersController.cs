@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SimpleCatalog.Application.DTOs;
+using SimpleCatalog.Application.Pagination;
 using SimpleCatalog.Application.Services;
 
 namespace SimpleCatalog.API.Controllers
@@ -10,10 +15,14 @@ namespace SimpleCatalog.API.Controllers
     public class SuppliersController : ControllerBase
     {
         private readonly SupplierService _supplierService;
+        private readonly IValidator<CreateSupplierDto> _createValidator;
+        private readonly IValidator<UpdateSupplierDto> _updateValidator;
 
-        public SuppliersController(SupplierService supplierService) 
+        public SuppliersController(SupplierService supplierService,IValidator<CreateSupplierDto> createValidator,IValidator<UpdateSupplierDto> updateValidator) 
         { 
-        _supplierService = supplierService;
+             _supplierService = supplierService;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
         }
 
         [HttpGet]
@@ -26,6 +35,16 @@ namespace SimpleCatalog.API.Controllers
         }
 
 
+
+        [HttpGet("paged")]
+
+        public async Task<ActionResult<PagedResult<SupplierDto>>> GetPaged(int pageNumber=1,int pageSize=10) 
+        {
+            var pagedResult = await _supplierService.GetPagedSuppliersAsync(pageNumber, pageSize);
+
+            return Ok(pagedResult);
+        
+        }
         [HttpGet]
         [Route("{id}")]
 
@@ -42,6 +61,22 @@ namespace SimpleCatalog.API.Controllers
         [HttpPost]
         public async Task<ActionResult<SupplierDto>> Create(CreateSupplierDto dto) 
         { 
+            //Apply FluentValidation For user Inputs Manually:
+
+            ValidationResult validationResult= _createValidator.Validate(dto);
+            if (!validationResult.IsValid) 
+            {
+                var errorRespone = validationResult.Errors.Select(e => new 
+                { 
+                  PropertyName=e.PropertyName,
+                     ErrorMessage = e.ErrorMessage,
+                    attemptedValue = e.AttemptedValue
+
+                });
+
+                return BadRequest(new {Errors=errorRespone});
+            }
+
             var supplier= await _supplierService.CreateSupplierAsync(dto);
 
                 return CreatedAtAction(nameof(GetById),new {id=supplier.Id},supplier);
@@ -53,6 +88,19 @@ namespace SimpleCatalog.API.Controllers
         public async Task<IActionResult> Update(int id, UpdateSupplierDto dto)
         {
             if (id != dto.Id) return BadRequest();
+
+            ValidationResult validationResult = _updateValidator.Validate(dto);
+            if (!validationResult.IsValid) 
+            {
+                var errorRespone = validationResult.Errors.Select(e => new
+                {
+                    PropertyName = e.PropertyName,
+                    ErrorMessage = e.ErrorMessage,
+                    attemptedValue = e.AttemptedValue
+
+                });
+                return BadRequest(new {Errors=errorRespone});
+            }
             await _supplierService.UpdateSupplierAsync(dto);
             return NoContent();
         }

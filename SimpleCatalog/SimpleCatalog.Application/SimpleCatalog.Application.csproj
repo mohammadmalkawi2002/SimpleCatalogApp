@@ -10,6 +10,10 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\Request\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

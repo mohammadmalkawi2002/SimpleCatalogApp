@@ -1,4 +1,5 @@
-﻿using SimpleCatalog.Domain.Entities;
+﻿using SimpleCatalog.Application.Pagination;
+using SimpleCatalog.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,8 @@ namespace SimpleCatalog.Application.Interfaces
     {
         Task<List<Category>> GetAllAsync();
         Task<Category?> GetByIdAsync(int id);
+
+        Task<PagedResult<Category>> GetPagedAsync(BaseQueryParametersRequest query);
         Task<Category> AddAsync(Category category);
         Task UpdateAsync(Category category);
         Task DeleteAsync(int id);
