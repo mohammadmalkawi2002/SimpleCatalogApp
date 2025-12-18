@@ -54,14 +54,14 @@ namespace SimpleCatalog.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 12, 13, 16, 57, 17, 282, DateTimeKind.Utc).AddTicks(8905),
+                            CreatedAt = new DateTime(2025, 12, 14, 8, 28, 29, 388, DateTimeKind.Utc).AddTicks(2615),
                             Description = "Electronic devices",
                             Name = "Electronics"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 12, 13, 16, 57, 17, 282, DateTimeKind.Utc).AddTicks(8907),
+                            CreatedAt = new DateTime(2025, 12, 14, 8, 28, 29, 388, DateTimeKind.Utc).AddTicks(2617),
                             Description = "Books and publications",
                             Name = "Books"
                         });
@@ -82,7 +82,6 @@ namespace SimpleCatalog.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -97,6 +96,9 @@ namespace SimpleCatalog.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -104,7 +106,64 @@ namespace SimpleCatalog.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("SupplierId");
+
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("SimpleCatalog.Domain.Entities.Supplier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Suppliers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 12, 14, 8, 28, 29, 388, DateTimeKind.Utc).AddTicks(7412),
+                            Email = "contact@electrosupplies.com",
+                            Name = "Electro Supplies",
+                            Phone = "123-456-7890"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 12, 14, 8, 28, 29, 388, DateTimeKind.Utc).AddTicks(7414),
+                            Email = "info@bookworld.com",
+                            Name = "Book World",
+                            Phone = "987-654-3210"
+                        });
                 });
 
             modelBuilder.Entity("SimpleCatalog.Domain.Entities.Product", b =>
@@ -115,10 +174,23 @@ namespace SimpleCatalog.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SimpleCatalog.Domain.Entities.Supplier", "Supplier")
+                        .WithMany("Products")
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Category");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("SimpleCatalog.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("SimpleCatalog.Domain.Entities.Supplier", b =>
                 {
                     b.Navigation("Products");
                 });

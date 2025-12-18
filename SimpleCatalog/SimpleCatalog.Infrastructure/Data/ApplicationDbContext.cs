@@ -13,9 +13,10 @@ namespace SimpleCatalog.Infrastructure.Data
         {
             
         }
-
+       
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

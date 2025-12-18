@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SimpleCatalog.Application.DTOs;
+using SimpleCatalog.Application.Pagination;
 using SimpleCatalog.Application.Services;
+using System.Text.Json;
 
 namespace SimpleCatalog.API.Controllers
 {
@@ -10,10 +13,15 @@ namespace SimpleCatalog.API.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly CategoryService _categoryService;
+        private readonly IValidator<CreateCategoryDto> _createValidator;
+        private readonly IValidator<UpdateCategoryDto> _updateValidator;
 
-        public CategoriesController(CategoryService categoryService)
+
+        public CategoriesController(CategoryService categoryService, IValidator<CreateCategoryDto> createValidator, IValidator<UpdateCategoryDto> updateValidator)
         {
             _categoryService = categoryService;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
         }
 
         [HttpGet]
@@ -34,9 +42,41 @@ namespace SimpleCatalog.API.Controllers
             return Ok(category);
         }
 
+        [HttpGet("paged")]
+
+        public async Task<ActionResult<List<CategoryDto>>> GetPagedAsync([FromQuery] BaseQueryParametersRequest request)
+        {
+            var pagedResult= await _categoryService.GetPagedCategoriesAsync(request);
+            var metaData = new 
+            {
+                pagedResult.TotalCount,
+                pagedResult.PageNumber,
+                pagedResult.PageSize,
+                pagedResult.TotalPages,
+                pagedResult.HasNext,
+                pagedResult.HasPrevious,
+
+
+            };
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metaData));
+            return Ok(pagedResult.Items);
+        }
+
         [HttpPost]
         public async Task<ActionResult<CategoryDto>> Create(CreateCategoryDto dto)
         {
+            var validationResult= _createValidator.Validate(dto);
+            if (!validationResult.IsValid) 
+            {
+                var errorResponse = validationResult.Errors.Select(e => new 
+                { 
+                 PropertyName=e.PropertyName,
+                    ErrorMessage = e.ErrorMessage,
+                    AttemptedValue = e.AttemptedValue
+                });
+
+                return BadRequest(  new { Errors = errorResponse });
+            }
             var category = await _categoryService.CreateCategoryAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
         }
@@ -47,15 +87,26 @@ namespace SimpleCatalog.API.Controllers
             if (id != dto.Id)
                 return BadRequest();
 
-            try
+            var validationResult= _updateValidator.Validate(dto);
+            if (!validationResult.IsValid)
             {
+                var errorResponse = validationResult.Errors.Select(e => new
+                {
+                    PropertyName = e.PropertyName,
+                    ErrorMessage = e.ErrorMessage,
+                    AttemptedValue = e.AttemptedValue
+                });
+                return BadRequest(new {Errors=errorResponse});
+            }
+
+            
                 await _categoryService.UpdateCategoryAsync(dto);
                 return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
-            }
+            
+           
+            
+              
+           
         }
 
         [HttpDelete("{id}")]
